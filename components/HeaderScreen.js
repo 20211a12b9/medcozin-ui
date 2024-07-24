@@ -75,7 +75,7 @@ const HeaderScreen = () => {
                     <Image style={styles.icon} source={require("../assets/search2.png")} />
                 </View>
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('ChatScreen')}>
                 <Image style={styles.icon} source={require("../assets/telegram2.png")} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.avatarContainer} onPress={handlePicker}>
