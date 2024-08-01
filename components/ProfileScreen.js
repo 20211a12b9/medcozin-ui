@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import HeaderScreen from './HeaderScreen';
+import { StyleSheet, View, Text, Image, TouchableOpacity, ScrollView, Alert, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserPermissions from './utilities/UserPermissions';
 import * as ImagePicker from 'expo-image-picker';
@@ -9,13 +8,11 @@ import FooterScreen from './FooterScreen';
 import ProfileHeader from './ProfileHeader';
 import { useNavigation } from '@react-navigation/native';
 
-const ProfileScreen = () => {
-  const [customerDetails, setCustomerDetails] = useState(null);
-  const [error, setError] = useState("");
-  const { setIsLoggedIn } = useContext(AppContext);
-  const [user, setUser] = useState({ userid: '', avatar: '' });
-  const [useriid, setusriid] = useState('');
+const screenwidth = Dimensions.get('window').width;
 
+const ProfileScreen = () => {
+  const [user, setUser] = useState({ userid: '', avatar: '' });
+  const { setIsLoggedIn } = useContext(AppContext);
   const navigation = useNavigation();
 
   const handleLogout = () => {
@@ -48,30 +45,23 @@ const ProfileScreen = () => {
   const fetchUserData = async () => {
     try {
       const storedUser = await AsyncStorage.getItem('id');
-      console.log(storedUser);
-      setusriid(storedUser);
-      console.log(useriid);
       if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-        retrieveStoredAvatar(userData.userid);
-      } else {
-        console.error("No stored user data found");
+        const userId = JSON.parse(storedUser);
+        setUser(prevUser => ({ ...prevUser, userid: userId }));
+        await retrieveStoredAvatar(userId);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
     }
   };
 
-  const retrieveStoredAvatar = async (useriid) => {
+  const retrieveStoredAvatar = async (userId) => {
     try {
-      const storedUser = await AsyncStorage.getItem('id');
-      console.log(storedUser);
-      const storedAvatar = await AsyncStorage.getItem(`avatar_${storedUser}`);
+      const storedAvatar = await AsyncStorage.getItem(`avatar_${userId}`);
       if (storedAvatar) {
         setUser(prevUser => ({ ...prevUser, avatar: storedAvatar }));
       } else {
-        // console.log("No avatar found for user");
+        console.log("No avatar found for user");
       }
     } catch (error) {
       console.error('Error retrieving stored avatar:', error);
@@ -83,7 +73,8 @@ const ProfileScreen = () => {
   }, []);
 
   const handlePicker = async () => {
-    await UserPermissions.getCameraPermissions();
+    await UserPermissions.getMediaLibraryPermissions();
+
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -91,9 +82,10 @@ const ProfileScreen = () => {
         aspect: [4, 3],
       });
 
-      if (!result.cancelled && result.uri) {
-        setUser(prevUser => ({ ...prevUser, avatar: result.uri }));
-        await AsyncStorage.setItem(`avatar_${user.userid}`, result.uri);
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+        setUser(prevUser => ({ ...prevUser, avatar: selectedImage.uri }));
+        await AsyncStorage.setItem(`avatar_${user.userid}`, selectedImage.uri);
       } else {
         console.log('Image selection canceled');
       }
@@ -109,25 +101,24 @@ const ProfileScreen = () => {
         <View style={styles.profileInfo}>
           <View style={styles.avatarNavigator}>
             <TouchableOpacity onPress={handlePicker}>
-              <Image style={styles.avatar} source={{ uri: user.avatar }} />
-              <View style={styles.plusIconContainer}>
-                <Text style={styles.plusIcon}>+</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.profileButton}>
-              <Text style={styles.profileButtonText}>Posts</Text>
+              <Image 
+                style={styles.avatar} 
+                source={ { uri: user.avatar } } 
+              />
             </TouchableOpacity>
           </View>
-          <View style={styles.belowProfile}>
-            <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('FollowersScreen')}>
-              <Text style={styles.profileButtonText}>Followers</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('FollowingScreen')}>
-              <Text style={styles.profileButtonText}>Following</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('ConnectionsScreen')}>
-              <Text style={styles.profileButtonText}>Connections</Text>
-            </TouchableOpacity>
+          <View style={styles.profileInfo2}>
+            <View style={styles.belowProfile}>
+              <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('FollowersScreen')}>
+                <Text style={styles.profileButtonText}>About</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('FollowingScreen')}>
+                <Text style={styles.profileButtonText}>Articles</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.profileButton} onPress={() => navigation.navigate('ConnectionsScreen')}>
+                <Text style={styles.profileButtonText}>Rewards</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
@@ -154,45 +145,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
     maxWidth: 500,
+    marginTop:-30
+    
+  },
+  profileInfo2: {
+    alignItems: 'center',
+    width: screenwidth - 22,
+    maxWidth: 600,
+    borderRadius: 30,
+    justifyContent: 'center',
+    backgroundColor: '#353839',
+    paddingVertical: 10,
+    marginTop: 20,
   },
   avatarNavigator: {
-    flexDirection: 'row',
+    marginVertical: 8,
+    marginHorizontal: 16,
+    padding: 12,
+    borderRadius: 10,
+    borderColor: '#e0e0e0',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingRight:130
+    justifyContent: 'center',
   },
   avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginRight: 20,
-  },
-  plusIconContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 20,
-    backgroundColor: '#8EBA17',
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  plusIcon: {
-    color: 'white',
-    fontSize: 20,
+    width: screenwidth - 12, // Adjust width based on margin
+    height: 300,
+    borderRadius: 20,
+    resizeMode: 'cover',
+    backgroundColor: '#ffcba4',
   },
   profileButton: {
-    backgroundColor: 'grey',
     padding: 10,
     borderRadius: 15,
     alignItems: 'center',
     marginHorizontal: 10,
+   
   },
   profileButtonText: {
-    color: 'black',
+    color: 'white',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '200',
   },
   belowProfile: {
     flexDirection: 'row',
@@ -200,7 +193,7 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   logoutButton: {
-    marginTop: 10,
+    marginTop: 20,
     backgroundColor: '#ff6347',
     paddingVertical: 10,
     paddingHorizontal: 20,

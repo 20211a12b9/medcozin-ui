@@ -1,5 +1,5 @@
 module.exports = {
-    API_HOST: 'http://192.168.1.8:8080',
+    API_HOST: 'http://192.168.1.5:9091',
     project: {
       ios: {},
       android: {},

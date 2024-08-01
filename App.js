@@ -18,6 +18,12 @@ import FollowersScreen from "./components/FollowersScreen";
 import FollowingScreen from "./components/FollowingScreen";
 import ConnectionsScreen from "./components/ConnectionsScreen";
 import ChatScreen from "./components/ChatScreen";
+import PostForm from "./components/PostForm";
+import PostsScreen from "./components/PostsScreen";
+import PostDetailScreen from "./components/PostDetailScreen";
+import CreateCommentScreen from "./components/CreateCommentScreen";
+import LikeButton from "./components/LikeButton";
+import NetworkScreen from "./components/NetworkScreen";
 
 
 const AuthStack = createNativeStackNavigator();
@@ -96,6 +102,12 @@ export default function App() {
       <AppStack.Screen name="FollowingScreen" component={FollowingScreen} />
       <AppStack.Screen name="ConnectionsScreen" component={ConnectionsScreen} />
       <AppStack.Screen name="ChatScreen" component={ChatScreen} />
+      <AppStack.Screen name="PostForm" component={PostForm} />
+      <AppStack.Screen name="PostsScreen" component={PostsScreen} />
+      <AppStack.Screen name="PostDetailScreen" component={PostDetailScreen} />
+      <AppStack.Screen name="CreateCommentScreen" component={CreateCommentScreen} />
+      <AppStack.Screen name="LikeButton" component={LikeButton} />
+      <AppStack.Screen name="NetworkScreen" component={NetworkScreen} />
     </AppStack.Navigator>
   );
 

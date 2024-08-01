@@ -15,11 +15,11 @@ const FooterScreen = ({ showBack }) => {
         <Image style={styles.appIcon} source={require('../assets/home3.png')} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('ProfileScreen')}>
+      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('NetworkScreen')}>
         <Image style={styles.appIcon} source={require('../assets/link3.png')} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('More')}>
+      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('PostForm')}>
         <Image style={styles.appIcon} source={require('../assets/more2.png')} />
       </TouchableOpacity>
 
@@ -41,11 +41,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around',
     paddingHorizontal: 12,
-    paddingVertical: 15,
+    paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: '#e0e0e0',
     borderRadius: 90,
-    margin: 8,
+    margin: 5,
+    paddingBottom:10
   },
   iconContainer: {
     justifyContent: 'center',

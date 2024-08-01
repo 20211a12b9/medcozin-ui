@@ -1,42 +1,86 @@
-import React from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { View, StyleSheet, Dimensions } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import HeaderScreen from './HeaderScreen';
 import FooterScreen from './FooterScreen';
+import PostsScreen from './PostsScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import medicozinConfig from '../medicozin.config';
 
 const { width, height } = Dimensions.get('window');
 
 const StudentHome = () => {
+  const [posts, setPosts] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchPosts = async () => {
+    try {
+      const jwt = await AsyncStorage.getItem('token');
+      if (!jwt) {
+        throw new Error('No token found');
+      }
+
+      const response = await fetch(`${medicozinConfig.API_HOST}/getAll`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setPosts(data);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleLikeUpdate = (updatedPost) => {
+    setPosts((prevPosts) =>
+      prevPosts.map((post) => (post.postId === updatedPost.postId ? updatedPost : post))
+    );
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshing(true);
+      fetchPosts();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
       <HeaderScreen />
       <View style={styles.contentContainer}>
-     
-        <Text style={styles.headerText}>  Medicoz<Text style={{color:'#8EBA17'}}>!</Text>n </Text>
+        <PostsScreen
+          posts={posts}
+          refreshing={refreshing}
+          onRefresh={fetchPosts}
+          onLikeUpdate={handleLikeUpdate}
+        />
       </View>
-      <FooterScreen/>
+      <FooterScreen />
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0', // light grey background color
+    backgroundColor: '#e9ebee',
   },
   contentContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     width: width,
     height: height,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
-  headerText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333', // dark grey text color
-  }
 });
 
 export default StudentHome;
