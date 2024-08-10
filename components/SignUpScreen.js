@@ -192,11 +192,11 @@ const SignUpScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Medicozin!</Text>
+      <Text style={styles.title}>Medicoz<Text style={{ color: '#8EBA17' }}>!</Text>n</Text>
       <View style={styles.imageContainer}>
         <Image
           style={styles.appLogo}
-          source={require("../assets/logo2.jpg")}
+          source={require("../assets/logo3.jpg")}
         />
       </View>
       <View style={styles.toggleContainer}>

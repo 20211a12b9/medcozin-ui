@@ -66,11 +66,12 @@ const LoginScreen = ({ navigation }) => {
 
   return (
     <View style={styles.mainContainer}>
-      <Text style={styles.mainHeader}>MedicozIn!</Text>
+     
+      <Text style={styles.mainHeader}>Medicoz<Text style={{ color: '#8EBA17' }}>!</Text>n</Text>
       <View style={styles.imageContainer}>
         <Image
           style={styles.appLogo}
-          source={require("../assets/logo2.jpg")}
+          source={require("../assets/logo3.jpg")}
         />
       </View>
       <View style={styles.inputContainer}>

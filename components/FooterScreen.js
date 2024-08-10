@@ -23,7 +23,7 @@ const FooterScreen = ({ showBack }) => {
         <Image style={styles.appIcon} source={require('../assets/more2.png')} />
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('Notifications')}>
+      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('Follow')}>
         <Image style={styles.appIcon} source={require('../assets/ringing2.png')} />
       </TouchableOpacity>
 
@@ -68,6 +68,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     padding: 5,
   },
-});
+}); 
 
 export default FooterScreen;

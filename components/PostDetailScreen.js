@@ -109,14 +109,14 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     padding: 8,
-    backgroundColor: '#b7e637',
+    backgroundColor: '#c4d870',
     borderRadius: 15,
     marginHorizontal: 5,
   },
   iconContainerWithText: {
     padding: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#b7e637',
+    backgroundColor: '#c4d870',
     borderRadius: 15,
     marginHorizontal: 5,
     flexDirection: 'row',

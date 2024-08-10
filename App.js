@@ -24,6 +24,13 @@ import PostDetailScreen from "./components/PostDetailScreen";
 import CreateCommentScreen from "./components/CreateCommentScreen";
 import LikeButton from "./components/LikeButton";
 import NetworkScreen from "./components/NetworkScreen";
+import AboutScreen from "./components/AboutScreen";
+import ArticleScreen from "./components/ArticleScreen";
+import MediaToolsScreen from "./components/MediaToolsScreen";
+import Follow from "./components/Follow";
+import ProfileScreenOfFollowersOrFollowing from "./components/ProfileScreenOfFollowersOrFollowing";
+import AboutFollowersOrFollowing from "./components/AboutFollowersOrFollowing";
+import ArticlesofFollowersOrFollowing from "./components/ArticlesofFollowersOrFollowing";
 
 
 const AuthStack = createNativeStackNavigator();
@@ -108,6 +115,13 @@ export default function App() {
       <AppStack.Screen name="CreateCommentScreen" component={CreateCommentScreen} />
       <AppStack.Screen name="LikeButton" component={LikeButton} />
       <AppStack.Screen name="NetworkScreen" component={NetworkScreen} />
+      <AppStack.Screen name="AboutScreen" component={AboutScreen} />
+      <AppStack.Screen name="ArticleScreen" component={ArticleScreen} />
+      <AppStack.Screen name="MediaToolsScreen" component={MediaToolsScreen} />
+      <AppStack.Screen name="Follow" component={Follow} />
+      <AppStack.Screen name="ProfileScreenOfFollowersOrFollowing" component={ProfileScreenOfFollowersOrFollowing} />
+      <AppStack.Screen name="AboutFollowersOrFollowing" component={AboutFollowersOrFollowing} />
+      <AppStack.Screen name="ArticlesofFollowersOrFollowing" component={ArticlesofFollowersOrFollowing} />
     </AppStack.Navigator>
   );
 

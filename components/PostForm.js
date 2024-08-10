@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert, Image, TouchableOpacity, Text } from 'react-native';
+import { View, TextInput, StyleSheet, Alert, Image, TouchableOpacity, Text, Dimensions, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import UserPermissions from './utilities/UserPermissions';
 import medicozinConfig from '../medicozin.config';
+import { Video } from 'expo-av';
+
+const { width } = Dimensions.get('window');
 
 const PostForm = () => {
     const [content, setContent] = useState('');
     const [type, setType] = useState('');
     const [imageUri, setImageUri] = useState(null);
     const [userId, setUserId] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const maxWords = 3000;
 
     useEffect(() => {
         const fetchUserId = async () => {
@@ -26,21 +31,34 @@ const PostForm = () => {
         fetchUserId();
     }, []);
 
-    const handleImagePick = async () => {
+    const handleImagePick = async (type) => {
         await UserPermissions.getMediaLibraryPermissions();
 
         try {
-            let result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.All,
-                allowsEditing: true,
-               
-                quality: 1,
-            });
+            if (type === 'video') {
+                let result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.Videos,
+                    allowsEditing: true,
+                    quality: 1,
+                });
 
-            if (!result.canceled && result.assets.length > 0) {
-                setImageUri(result.assets[0].uri);
+                if (!result.canceled && result.assets.length > 0) {
+                    setImageUri(result.assets[0].uri);
+                } else {
+                    console.log('Image selection canceled');
+                }
             } else {
-                console.log('Image selection canceled');
+                let result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                    allowsEditing: true,
+                    quality: 1,
+                });
+
+                if (!result.canceled && result.assets.length > 0) {
+                    setImageUri(result.assets[0].uri);
+                } else {
+                    console.log('Image selection canceled');
+                }
             }
         } catch (error) {
             console.error('Error picking image:', error);
@@ -67,7 +85,7 @@ const PostForm = () => {
                 type: `image/${fileType}`,
             });
         }
-
+        setLoading(true);
         try {
             const jwt = await AsyncStorage.getItem('token');
 
@@ -77,7 +95,7 @@ const PostForm = () => {
                 headers: {
                     Accept: 'application/json',
                     'Content-Type': 'multipart/form-data',
-                    Authorization: 'Bearer ' + jwt,
+                    Authorization: `Bearer ${jwt}`,
                 },
             });
 
@@ -93,79 +111,108 @@ const PostForm = () => {
             }
         } catch (error) {
             Alert.alert('Error', 'Network error');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleContentChange = (text) => {
+        const words = text.trim().split(/\s+/);
+        if (words.length <= maxWords) {
+            setContent(text);
+        } else {
+            Alert.alert('Word Limit Exceeded', `You can only write up to ${maxWords} words.`);
         }
     };
 
     return (
         <View style={styles.container}>
             <Text style={styles.header}>Create a Post</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="Enter Post Content"
-                value={content}
-                onChangeText={setContent}
-                multiline
-                numberOfLines={4}
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="Enter Post Type"
-                value={type}
-                onChangeText={setType}
-            />
-            <TouchableOpacity style={styles.imagePicker} onPress={handleImagePick}>
-                <Text style={styles.imagePickerText}>Pick an Image</Text>
-            </TouchableOpacity>
-            {imageUri && (
-                <Image
+            <View style={styles.textinput}>
+                <TextInput
+                    style={styles.input}
+                    placeholder="Enter Post Content..."
+                    placeholderTextColor={'#d3d3d3'}
+                    value={content}
+                    onChangeText={handleContentChange}
+                    multiline
+                />
+                <Text style={styles.wordCount}>{content.trim().split(/\s+/).length}/{maxWords} words</Text>
+            </View>
+            {!imageUri && type === '' && (
+                <View style={styles.iconContainer}>
+                    <TouchableOpacity onPress={() => { setType('image'); handleImagePick('image'); }} style={styles.iconButton}>
+                        <Image source={require('../assets/picture.png')} style={styles.icon} />
+                        <Text style={styles.iconText}>Image</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { setType('video'); handleImagePick('video'); }} style={styles.iconButton}>
+                        <Image source={require('../assets/play-button2.png')} style={styles.icon} />
+                        <Text style={styles.iconText}>Video</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
+            {imageUri && type === 'video' ? (
+                <Video
                     source={{ uri: imageUri }}
                     style={styles.image}
+                    useNativeControls
+                    resizeMode="contain"
                 />
+            ) : (
+                imageUri && (
+                    <Image
+                        source={{ uri: imageUri }}
+                        style={styles.image}
+                    />
+                )
             )}
-            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                <Text style={styles.submitButtonText}>Create Post</Text>
-            </TouchableOpacity>
+            {loading ? (
+                <ActivityIndicator size="large" color="#4CAF50" style={styles.loadingIndicator} />
+            ) : (
+                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+                    <Text style={styles.submitButtonText}>Create Post</Text>
+                </TouchableOpacity>
+            )}
         </View>
     );
-};
+}
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
-        backgroundColor: '#f5f5f5',
+        padding: 20,
+        backgroundColor: '#f5f5dc',
     },
     header: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#333',
+        color: 'black',
         marginBottom: 16,
         textAlign: 'center',
     },
+    textinput: {
+        marginBottom: 26,
+        backgroundColor:'#414a4c',
+        borderRadius:5
+    },
     input: {
-        height: 100,
-        borderColor: '#ccc',
-        borderWidth: 1,
-        borderRadius: 8,
-        marginBottom: 12,
+        height: 490,
+        borderColor: 'white',
+        borderRadius: 1,
         paddingHorizontal: 12,
         paddingVertical: 8,
-        backgroundColor: '#fff',
+        color: '#d3d3d3',
+        borderWidth: 0.1,
+        textAlignVertical: 'top',
     },
-    imagePicker: {
-        backgroundColor: '#8EBA17',
-        padding: 12,
-        borderRadius: 8,
-        marginBottom: 12,
-        alignItems: 'center',
-    },
-    imagePickerText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
+    wordCount: {
+        color: '#d3d3d3',
+        textAlign: 'right',
+        marginTop: 4,
+        fontSize: 14,
     },
     image: {
-        width: '100%',
+        width: width - 40,
         height: 200,
         borderRadius: 8,
         marginBottom: 16,
@@ -181,6 +228,27 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    iconContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        marginBottom: 180,
+    },
+    iconButton: {
+        alignItems: 'center',
+    },
+    icon: {
+        width: 30,
+        height: 30,
+        marginBottom: 8,
+    },
+    iconText: {
+        color: 'black',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    loadingIndicator: {
+        marginVertical: 20,
     },
 });
 

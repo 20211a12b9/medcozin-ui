@@ -28,9 +28,9 @@ const HeaderScreen = () => {
     return (
         <View style={styles.container}>
             <View style={styles.logoContainer}>
-                <Image style={styles.appLogo} source={require("../assets/MEDICOZ.png")} />
+                <Image style={styles.appLogo} source={require("../assets/logo3.jpg")} />
                 <Text style={styles.greetingText}>
-                    Medicoz<Text style={{ color: '#8EBA17' }}>!</Text>n
+                    Medicoz<Text style={{ color: 'black' }}>!</Text>n
                 </Text>
             </View>
             <TouchableOpacity style={styles.iconContainer}>

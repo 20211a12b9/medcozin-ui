@@ -1,57 +1,77 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Alert, FlatList, Text, Image,} from 'react-native';
+import { View, StyleSheet, FlatList, Text, Image, ActivityIndicator,TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ProfileHeader from './ProfileHeader';
+import ProfileHeader from './ProfileHeader'; // Assuming this is a component you have
 import medicozinConfig from '../medicozin.config';
+import { useNavigation } from '@react-navigation/native';
 
 const FollowersScreen = () => {
   const [followers, setFollowers] = useState([]);
-  const [sd,setSd1]=useState('')
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState({ userid: '', avatar: '' });
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchFollowers = async () => {
       try {
         const storedUser = await AsyncStorage.getItem('id');
-        const jwt = await AsyncStorage.getItem('token');
-        console.log("jwt", jwt, "id", storedUser);
-
-        const response = await fetch(`${medicozinConfig.API_HOST}/getFollowers`, {
-          method: 'GET',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            Authorization: 'Bearer ' + jwt,
-          },
-        });
-
-        if (response.status === 200) {
-          const data = await response.json(); // Assuming the response is in JSON format
-          console.log("data", data);
-          setFollowers(data); // Set the fetched data to state
-          console.log("data00", followers[0].followeruserid);
-          setSd1(followers[0].followeruserid)
-        } else if (response.status === 403) {
-          await AsyncStorage.removeItem('token');
-          throw new Error('Unauthorized');
+        if (storedUser) {
+          const response = await fetch(`${medicozinConfig.API_HOST}/getFollowers/${storedUser}`);
+          if (response.ok) {
+            const data = await response.json();
+            console.log("fdata", data[0]);
+            setFollowers(data);
+          } else {
+            throw new Error('Failed to fetch followers');
+          }
         } else {
-          throw new Error('Failed to fetch followers');
+          throw new Error('User ID not found');
         }
       } catch (error) {
-        console.error('Error fetching followers:', error);
-        Alert.alert('Error', 'Failed to fetch followers');
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchFollowers();
-  }, []); // Empty dependency array means this effect runs once after the initial render
+  }, []);
+// console.log("followers",followers[0].follower.specialization)
+  const renderFollower = ({ item }) => (
+    
+       <TouchableOpacity 
+        style={styles.followerContainer}
+        onPress={() => navigation.navigate('ProfileScreenOfFollowersOrFollowing', {followerId: item.folloersId })}
+      >
+      <Image
+        style={styles.avatar} 
+        source={user.avatar ? { uri: user.avatar } : require('../assets/avatar.png')} 
+      />
+      <View style={styles.infoContainer}>
+        <Text style={styles.name}>{item.follower.firstname}{" "}{item.follower.lastname}</Text>
+        <Text style={styles.specialization}>{item.follower.specialization}</Text>
+      </View>
+      </TouchableOpacity>
+   
+  );
 
-  
- 
+  if (loading) {
+    return <ActivityIndicator size="large" color="#0000ff" style={styles.loading} />;
+  }
+
+  if (error) {
+    return <Text style={styles.error}>{error}</Text>;
+  }
+
   return (
     <View style={styles.container}>
       <ProfileHeader />
-    
-   
+      <FlatList
+        data={followers}
+        keyExtractor={(item) => item.id ? item.id.toString() : Math.random().toString()}
+        renderItem={renderFollower}
+      />
     </View>
   );
 };
@@ -66,6 +86,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+    alignItems: 'center',
   },
   avatar: {
     width: 50,
@@ -79,10 +100,22 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: 'bold',
+    
   },
   specialization: {
     fontSize: 14,
     color: '#666',
+  },
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  error: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    color: 'red',
   },
 });
 

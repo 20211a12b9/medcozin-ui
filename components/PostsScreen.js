@@ -85,7 +85,7 @@ const PostsScreen = () => {
     const { postId, imageUrl, content, studentEntity, type } = item;
 
     return (
-      <TouchableOpacity onPress={() => navigation.navigate('PostDetailScreen', {
+      <TouchableOpacity onPress={() => navigation.navigate('PostDetailScreen', { 
         post: item,
         posts,
         currentIndex: index,
@@ -108,6 +108,7 @@ const PostsScreen = () => {
               />
             )}
             <View style={styles.headerContainer}>
+           
               <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('ProfileScreen')}>
                 <Image style={styles.avatar} source={user.avatar ? { uri: user.avatar } : require('../assets/avatar.png')} />
               </TouchableOpacity>
@@ -164,7 +165,7 @@ const PostsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#f5f5dc',
     margin: -16,
   },
   imageContainer: {
@@ -242,14 +243,14 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     padding: 4,
-    backgroundColor: '#b7e637',
+    backgroundColor: '#c4d870',
     borderRadius: 15,
     marginHorizontal: 5,
   },
   iconContainerWithText: {
     padding: 4,
     paddingHorizontal: 8,
-    backgroundColor: '#b7e637',
+    backgroundColor: '#c4d870',
     borderRadius: 15,
     marginHorizontal: 5,
     flexDirection: 'row',
