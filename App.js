@@ -122,6 +122,7 @@ export default function App() {
       <AppStack.Screen name="ProfileScreenOfFollowersOrFollowing" component={ProfileScreenOfFollowersOrFollowing} />
       <AppStack.Screen name="AboutFollowersOrFollowing" component={AboutFollowersOrFollowing} />
       <AppStack.Screen name="ArticlesofFollowersOrFollowing" component={ArticlesofFollowersOrFollowing} />
+      <AppStack.Screen name="Request" component={Request} />
     </AppStack.Navigator>
   );
 

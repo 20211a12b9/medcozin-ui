@@ -6,11 +6,10 @@ import * as ImagePicker from 'expo-image-picker';
 import { AppContext } from "../AppContext";
 import FooterScreen from './FooterScreen';
 import AboutFollowersOrFollowing from './AboutFollowersOrFollowing';
-import { useNavigation,useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import medicozinConfig from '../medicozin.config';
 import ArticlesofFollowersOrFollowing from './ArticlesofFollowersOrFollowing';
-
-
+import ConnectionsScreen from './ConnectionsScreen';
 
 const screenwidth = Dimensions.get('window').width;
 
@@ -19,19 +18,19 @@ const ProfileScreenOfFollowersOrFollowing = () => {
   const [selectedSection, setSelectedSection] = useState(''); // State for the selected section
   const { setIsLoggedIn } = useContext(AppContext);
   const navigation = useNavigation();
-  const [data,setData]=useState();
+  const [data, setData] = useState();
   const route = useRoute();
   const { followerId } = route.params;
-  const [imageurl,setImageUrl]=useState();
+  const [imageurl, setImageUrl] = useState('');
 
-  console.log("followerId",followerId)
+  console.log("followerId", followerId);
+
   const fetchPosts = async () => {
     try {
         const jwt = await AsyncStorage.getItem('token');
         if (!jwt) {
             throw new Error('No token found');
         }
-        const storedUser = await AsyncStorage.getItem('id');
         const response = await fetch(`${medicozinConfig.API_HOST}/getProfilepicbyId/${followerId}`, {
             method: 'GET',
             headers: {
@@ -46,18 +45,16 @@ const ProfileScreenOfFollowersOrFollowing = () => {
         const data = await response.json();
         console.log("Raw article data:", data[0][0]);
 
-        setImageUrl(data[0][0])
+        setImageUrl(`${medicozinConfig.API_HOST}${data[0][0]}`);
     } catch (error) {
-       
-        console.error('Error fetching posts:', error);
-    } finally {
-        setRefreshing(false);
+        console.error('Error fetching profile:', error);
     }
-};
+  };
 
-useEffect(() => {
+  useEffect(() => {
     fetchPosts();
-}, []);
+  }, []);
+
   const fetchUserData = async () => {
     try {
       const storedUser = await AsyncStorage.getItem('id');
@@ -113,73 +110,64 @@ useEffect(() => {
   const renderSelectedSection = () => {
     if (selectedSection === 'About') {
         return <AboutFollowersOrFollowing followerId={followerId} />;
+    } else if (selectedSection === 'Articles') {
+        return <ArticlesofFollowersOrFollowing followerId={followerId} />;
     }
-    else  if (selectedSection === 'Articles') {
-      return <ArticlesofFollowersOrFollowing followerId={followerId}/>;
-    }
-    // Add other sections like 'Articles' or 'Rewards' as needed
+    else if (selectedSection === 'Connect') {
+      return <ConnectionsScreen followerId={followerId} />;
+  }
     return null;
   };
-  useEffect(()=>{
+
+  useEffect(() => {
     fetchAbout();
-   },[])
- 
-  
- 
-   
-   const fetchAbout = async () => {
-     try {
-       const jwt = await AsyncStorage.getItem('token');
-       if (!jwt) {
-         throw new Error('No token found');
-       }
-       const storedUser = await AsyncStorage.getItem('id');
-       const response = await fetch(`${medicozinConfig.API_HOST}/studentAddress/${followerId}`, {
-         method: 'GET',
-         headers: {
-           Authorization: `Bearer ${jwt}`,
-         },
-       });
- 
-       if (!response.ok) {
-         throw new Error(`HTTP error! status: ${response.status}`);
-       }
- 
-       const data = await response.json();
-       setData(data)
-       console.log("setudentdetails",data)
-     } catch (error) {
-    
-       console.error('Error fetching posts:', error);
-     } 
-   };
-   console.log("ima",imageurl)
+  }, []);
+
+  const fetchAbout = async () => {
+    try {
+      const jwt = await AsyncStorage.getItem('token');
+      if (!jwt) {
+        throw new Error('No token found');
+      }
+      const response = await fetch(`${medicozinConfig.API_HOST}/studentAddress/${followerId}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setData(data);
+      console.log("setudentdetails", data);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      {/* <ProfileHeader /> */}
       <ScrollView contentContainerStyle={styles.scrollContainer}>
-      
         <View style={styles.profileInfo}>
           <View style={styles.avatarNavigator}>
-         
-            
             <Image style={styles.appIcon} source={require('../assets/edit-text.png')} />
-              <Image 
-        
-                style={styles.avatar} 
-                source={( { uri: imageurl } )}
-              />
-          
+            <Image
+              style={styles.avatar}
+              source={{ uri: imageurl }}
+            />
             <View style={styles.usernameContainer}>
-              <Text style={styles.username}>{data? 'Dr.':''}{data ? data[0][2]: ''}{' '}{data ? data[0][3] :''}</Text>
-              <Text style={styles.specialization}>{data ? data[0][5]: ''}</Text>
+              <Text style={styles.username}>{data ? 'Dr.' : ''}{data ? data[0][2] : ''}{' '}{data ? data[0][3] : ''}</Text>
+              <Text style={styles.specialization}>{data ? data[0][5] : ''}</Text>
             </View>
           </View>
           <View style={styles.profileInfo2}>
             <View style={styles.belowProfile}>
               <View style={styles.sectionContainer}>
-                <TouchableOpacity 
-                  style={styles.profileButton} 
+                <TouchableOpacity
+                  style={styles.profileButton}
                   onPress={() => setSelectedSection('About')} // Set selected section
                 >
                   <Text style={[styles.profileButtonText, selectedSection === 'About' && styles.selectedButton]}>About</Text>
@@ -189,8 +177,8 @@ useEffect(() => {
                 )}
               </View>
               <View style={styles.sectionContainer}>
-                <TouchableOpacity 
-                  style={styles.profileButton} 
+                <TouchableOpacity
+                  style={styles.profileButton}
                   onPress={() => setSelectedSection('Articles')}
                 >
                   <Text style={[styles.profileButtonText, selectedSection === 'Articles' && styles.selectedButton]}>Articles</Text>
@@ -200,13 +188,13 @@ useEffect(() => {
                 )}
               </View>
               <View style={styles.sectionContainer}>
-                <TouchableOpacity 
-                  style={styles.profileButton} 
-                  onPress={() => setSelectedSection('Rewards')}
+                <TouchableOpacity
+                  style={styles.profileButton}
+                  onPress={() => setSelectedSection('Connect')}
                 >
-                  <Text style={[styles.profileButtonText, selectedSection === 'Rewards' && styles.selectedButton]}>Connect</Text>
+                  <Text style={[styles.profileButtonText, selectedSection === 'Connect' && styles.selectedButton]}>Connect</Text>
                 </TouchableOpacity>
-                {selectedSection === 'Rewards' && (
+                {selectedSection === 'Connect' && (
                   <Image style={styles.arrowIcon} source={require('../assets/arrow-up.png')} />
                 )}
               </View>
@@ -214,8 +202,6 @@ useEffect(() => {
           </View>
         </View>
         {renderSelectedSection()}
-      
-       
       </ScrollView>
       <FooterScreen />
     </View>
@@ -354,8 +340,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-
-
-
 export default ProfileScreenOfFollowersOrFollowing;

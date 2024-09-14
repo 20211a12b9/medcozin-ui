@@ -1,4 +1,6 @@
-import React, { useState, useCallback, useRef } from 'react';
+
+
+import React, { useState, useCallback, useRef,useEffect } from 'react';
 import { View, Text, Image, StyleSheet, FlatList, TouchableOpacity, Dimensions, RefreshControl } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import medicozinConfig from '../medicozin.config';
@@ -13,14 +15,30 @@ const PostsScreen = () => {
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [viewableItems, setViewableItems] = useState([]);
+  const [myid, setMyId] = useState(''); // ID of the user to be followed
+  const [followerId, setFollowerId] = useState(''); // ur id
+
   const navigation = useNavigation();
-  const [user, setUser] = useState({ userid: '', avatar: '' });
 
   const handleLikeUpdate = (updatedPost) => {
     setPosts((prevPosts) =>
       prevPosts.map((post) => (post.postId === updatedPost.postId ? updatedPost : post))
     );
   };
+  useEffect(() => {
+    const fetchUserId = async () => {
+        try {
+            const storedId = await AsyncStorage.getItem('id');
+            if (storedId !== null) {
+              setMyId(JSON.parse(storedId));
+            }
+        } catch (error) {
+            console.log('Error fetching user ID:', error);
+        }
+    };
+
+    fetchUserId();
+}, []);
 
   const fetchPosts = async () => {
     try {
@@ -28,8 +46,8 @@ const PostsScreen = () => {
       if (!jwt) {
         throw new Error('No token found');
       }
-
-      const response = await fetch(`${medicozinConfig.API_HOST}/getAll`, {
+      const storedUser = await AsyncStorage.getItem('id');
+      const response = await fetch( `${medicozinConfig.API_HOST}/getAll/${storedUser}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${jwt}`,
@@ -42,9 +60,13 @@ const PostsScreen = () => {
 
       const data = await response.json();
       setPosts(data);
+      console.log("===jdjhdh---",data[0].studentId)
+     
+     
+      setError(null); // Clear previous errors on success
     } catch (error) {
       setError(error.message);
-      console.error('Error fetching posts:', error);
+      // console.error('Error fetching posts:', error);
     } finally {
       setRefreshing(false);
     }
@@ -69,7 +91,6 @@ const PostsScreen = () => {
     itemVisiblePercentThreshold: 50,
   };
 
-  // Corrected handleVideoRef function
   const handleVideoRef = (postId) => (ref) => {
     if (ref) {
       const isVisible = viewableItems.some(item => item.item.postId === postId);
@@ -80,9 +101,47 @@ const PostsScreen = () => {
       }
     }
   };
+ 
 
+  const createFollower = async (studentId) => {
+    if (!studentId) return;
+    try {
+        const storedUser = await AsyncStorage.getItem('id');
+        if (!storedUser) {
+            console.error('Stored user ID is not available');
+            return;
+        }
+        // console.log("--d-d-", studentId, '--ki--', storedUser);
+
+        const response = await fetch(`${medicozinConfig.API_HOST}/ceateFollowers`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                studentId: studentId,
+                follower: { studentId: storedUser },
+            }),
+        });
+
+        if (response.ok) {
+          fetchPosts();
+            console.log('Follower created successfully');
+        } else {
+            console.error('Error creating follower, status:', response.status);
+            const responseBody = await response.json(); // Log response body for more details
+            console.error('Error details:', responseBody);
+        }
+    } catch (error) {
+        console.error('Error creating follower:', error);
+    }
+};
+
+                                                                
   const renderItem = ({ item, index }) => {
-    const { postId, imageUrl, content, studentEntity, type } = item;
+    const { postId, imageUrl, content, type, firstname, studentId, profileImageUrl,folooweststus } = item;
+    const fullImageUrl = `${medicozinConfig.API_HOST}${imageUrl}`;
+    const fullProfileImageUrl = `${medicozinConfig.API_HOST}${profileImageUrl}`;
 
     return (
       <TouchableOpacity onPress={() => navigation.navigate('PostDetailScreen', { 
@@ -95,7 +154,7 @@ const PostsScreen = () => {
           <View style={styles.imageContainer}>
             {type === 'video' ? (
               <Video
-                source={{ uri: imageUrl }}
+                source={{ uri: fullImageUrl }}
                 style={styles.postImage}
                 useNativeControls
                 resizeMode="cover"
@@ -103,16 +162,20 @@ const PostsScreen = () => {
               />
             ) : (
               <Image
-                source={{ uri: imageUrl }}
+                source={{ uri: fullImageUrl }}
                 style={styles.postImage}
               />
             )}
             <View style={styles.headerContainer}>
-           
-              <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('ProfileScreen')}>
-                <Image style={styles.avatar} source={user.avatar ? { uri: user.avatar } : require('../assets/avatar.png')} />
+              <TouchableOpacity style={styles.avatarContainer}  onPress={() => navigation.navigate('ProfileScreenOfFollowersOrFollowing', {followerId: studentId })}>
+                <Image style={styles.avatar} source={fullProfileImageUrl ? { uri: fullProfileImageUrl } : require('../assets/avatar.png')} />
               </TouchableOpacity>
-              <Text style={styles.userName}>{studentEntity.firstname}</Text>
+              <Text style={styles.userName}>{firstname}</Text>
+              {folooweststus === false && myid!=studentId && (
+                <TouchableOpacity style={styles.follow} onPress={() => createFollower(studentId)}>
+                  <Image style={styles.icon} source={require('../assets/add.png')} />
+                </TouchableOpacity>
+              )}
             </View>
             <View style={styles.actionContainer}>
               <View style={styles.leftIcons}>
@@ -222,8 +285,15 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#100c08',
   },
+   follow:{
+    padding: 4,
+    backgroundColor: '#DBFB5A',
+    borderRadius: 15,
+    marginHorizontal: 5,
+    marginLeft:210
+   },
   actionContainer: {
     position: 'absolute',
     bottom: 10,
@@ -243,14 +313,14 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     padding: 4,
-    backgroundColor: '#c4d870',
+    backgroundColor: '#DBFB5A',
     borderRadius: 15,
     marginHorizontal: 5,
   },
   iconContainerWithText: {
     padding: 4,
     paddingHorizontal: 8,
-    backgroundColor: '#c4d870',
+    backgroundColor: '#DBFB5A',
     borderRadius: 15,
     marginHorizontal: 5,
     flexDirection: 'row',

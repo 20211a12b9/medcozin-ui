@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   iconContainer: {
     width: 40,
     height: 40,
-    backgroundColor: '#c4d870',
+    backgroundColor: '#DBFB5A',
     borderRadius: 15,
     marginHorizontal: 5,
     justifyContent: 'center',

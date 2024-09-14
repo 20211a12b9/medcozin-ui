@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
 import LikeButton from './LikeButton';
-
+import medicozinConfig from '../medicozin.config';
 const screenWidth = Dimensions.get('window').width;
 
 const PostDetailScreen = ({ route }) => {
@@ -23,7 +23,7 @@ const PostDetailScreen = ({ route }) => {
       videoRef.current.playAsync(); // Play video automatically when component mounts
     }
   }, []);
-
+  const fullImageUrl = `${medicozinConfig.API_HOST}${post.imageUrl}`;
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.header}>
@@ -32,9 +32,10 @@ const PostDetailScreen = ({ route }) => {
         </TouchableOpacity>
       </View>
       <View style={styles.imageContainer}>
+ 
         {post.type === 'video' ? (
           <Video
-            source={{ uri: post.imageUrl }}
+            source={{ uri: fullImageUrl }}
             style={styles.postImage}
             useNativeControls
             resizeMode="cover"
@@ -42,7 +43,7 @@ const PostDetailScreen = ({ route }) => {
           />
         ) : (
           <Image
-            source={{ uri: post.imageUrl }}
+            source={{ uri: fullImageUrl }}
             style={styles.postImage}
           />
         )}
@@ -77,7 +78,7 @@ const PostDetailScreen = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f7fa',
+    backgroundColor: '#f5f5dc ',
     padding: 16,
   },
   imageContainer: {
@@ -86,11 +87,13 @@ const styles = StyleSheet.create({
     paddingTop: 70,
   },
   postImage: {
-    width: screenWidth - 32,
-    height: 300,
-    borderRadius: 8,
+    width: screenWidth - 12,
+    height: 350,
+    // borderRadius: 8,
     resizeMode: 'cover',
     alignSelf: 'center',
+    borderTopLeftRadius:15,
+    borderTopRightRadius:15,
   },
   actionContainer: {
     position: 'absolute',
@@ -109,14 +112,14 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     padding: 8,
-    backgroundColor: '#c4d870',
+    backgroundColor: '#DBFB5A',
     borderRadius: 15,
     marginHorizontal: 5,
   },
   iconContainerWithText: {
     padding: 8,
     paddingHorizontal: 10,
-    backgroundColor: '#c4d870',
+    backgroundColor: '#DBFB5A',
     borderRadius: 15,
     marginHorizontal: 5,
     flexDirection: 'row',
@@ -134,10 +137,12 @@ const styles = StyleSheet.create({
   },
   contentBackdrop: {
     backgroundColor: 'rgba(65, 105, 225, 0.8)', // Royal blue color with some transparency
-    borderRadius: 8,
+    width: screenWidth - 12,
     padding: 16,
-    marginTop: -15.7,
-    marginBottom: -15,
+    marginTop: -18.9,
+    marginBottom: -16,
+    borderTopEndRadius:15,
+    marginLeft:-10
   },
   postContent: {
     fontSize: 16,

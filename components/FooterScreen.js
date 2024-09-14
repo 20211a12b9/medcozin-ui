@@ -12,23 +12,23 @@ const FooterScreen = ({ showBack }) => {
   return (
     <View style={styles.footer}>
       <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('StudentHome')}>
-        <Image style={styles.appIcon} source={require('../assets/home3.png')} />
+        <Image style={styles.appIcon} source={require('../assets/home4.png')} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('NetworkScreen')}>
-        <Image style={styles.appIcon} source={require('../assets/link3.png')} />
+        <Image style={styles.appIcon} source={require('../assets/link4.png')} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('PostForm')}>
-        <Image style={styles.appIcon} source={require('../assets/more2.png')} />
+        <Image style={styles.appIcon} source={require('../assets/post3.png')} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('Follow')}>
-        <Image style={styles.appIcon} source={require('../assets/ringing2.png')} />
+        <Image style={styles.appIcon} source={require('../assets/ringing3.png')} />
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('Portfolio')}>
-        <Image style={styles.appIcon} source={require('../assets/portfolio2.png')} />
+        <Image style={styles.appIcon} source={require('../assets/portfolio3.png')} />
       </TouchableOpacity>
     </View>
   );

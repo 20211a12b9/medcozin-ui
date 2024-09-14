@@ -44,7 +44,7 @@ const [data,setData]=useState();
 
       const data = await response.json();
       setData(data)
-      console.log("setudentdetails",data)
+      // console.log("setudentdetails",data)
     } catch (error) {
    
       console.error('Error fetching posts:', error);

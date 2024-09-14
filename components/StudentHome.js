@@ -19,8 +19,8 @@ const StudentHome = () => {
       if (!jwt) {
         throw new Error('No token found');
       }
-
-      const response = await fetch(`${medicozinConfig.API_HOST}/getAll`, {
+      const storedUser = await AsyncStorage.getItem('id');
+      const response = await fetch(`${medicozinConfig.API_HOST}/getAll/${storedUser}`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${jwt}`,

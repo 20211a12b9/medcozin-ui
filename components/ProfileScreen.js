@@ -10,6 +10,7 @@ import AboutScreen from './AboutScreen';
 import { useNavigation } from '@react-navigation/native';
 import medicozinConfig from '../medicozin.config';
 import ArticleScreen from './ArticleScreen';
+import Requests from './Requests';
 
 const screenwidth = Dimensions.get('window').width;
 
@@ -20,7 +21,7 @@ const ProfileScreen = () => {
   const navigation = useNavigation();
   const [data,setData]=useState();
   const [imageUri, setImageUri] = useState(null);
-  
+  const [imageurl, setImageUrl] = useState('');
 
   const handleLogout = () => {
     Alert.alert(
@@ -61,6 +62,32 @@ const ProfileScreen = () => {
       console.error('Error fetching user data:', error);
     }
   };
+  const fetchProfilePic = async () => {
+    try {
+      const jwt = await AsyncStorage.getItem('token');
+      if (!jwt) {
+        throw new Error('No token found');
+      }
+      const storedUser = await AsyncStorage.getItem('id');
+      const response = await fetch(`${medicozinConfig.API_HOST}/getProfilepicbyId/${storedUser}`, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${jwt}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Raw article data:", data[0][0]);
+
+      setImageUrl(`${medicozinConfig.API_HOST}${data[0][0]}`);
+    } catch (error) {
+      console.error('Error fetching profile picture:', error);
+    }
+  };
 
   const retrieveStoredAvatar = async (userId) => {
     try {
@@ -77,6 +104,7 @@ const ProfileScreen = () => {
 
   useEffect(() => {
     fetchUserData();
+    fetchProfilePic();
   }, []);
 
   const handlePicker = async () => {
@@ -98,7 +126,7 @@ const ProfileScreen = () => {
         await AsyncStorage.setItem(`avatar_${user.userid}`, selectedImage.uri);
         // handleSubmit();
         const formData = new FormData();
-    formData.append('studentId', storedUser);
+        formData.append('studentId', storedUser);
     
    
 
@@ -155,7 +183,9 @@ const ProfileScreen = () => {
     else  if (selectedSection === 'Articles') {
       return <ArticleScreen />;
     }
-    // Add other sections like 'Articles' or 'Rewards' as needed
+    else  if (selectedSection === 'Requests') {
+      return <Requests />;
+    }
     return null;
   };
   useEffect(()=>{
@@ -238,6 +268,7 @@ const handleSubmit = async () => {
        console.error('Error fetching posts:', error);
      } 
    };
+   console.log("---",imageurl)
   return (
     <View style={styles.container}>
       {/* <ProfileHeader /> */}
@@ -251,7 +282,7 @@ const handleSubmit = async () => {
               <Image 
         
                 style={styles.avatar} 
-                source={{ uri: user.avatar }} 
+                source={{ uri: imageurl}} 
               />
             </TouchableOpacity>
             <View style={styles.usernameContainer}>
@@ -286,11 +317,11 @@ const handleSubmit = async () => {
               <View style={styles.sectionContainer}>
                 <TouchableOpacity 
                   style={styles.profileButton} 
-                  onPress={() => setSelectedSection('Rewards')}
+                  onPress={() => setSelectedSection('Requests')}
                 >
-                  <Text style={[styles.profileButtonText, selectedSection === 'Rewards' && styles.selectedButton]}>Rewards</Text>
+                  <Text style={[styles.profileButtonText, selectedSection === 'Requests' && styles.selectedButton]}>Requests</Text>
                 </TouchableOpacity>
-                {selectedSection === 'Rewards' && (
+                {selectedSection === 'Requests' && (
                   <Image style={styles.arrowIcon} source={require('../assets/arrow-up.png')} />
                 )}
               </View>

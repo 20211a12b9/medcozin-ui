@@ -35,33 +35,33 @@ const PostForm = () => {
         await UserPermissions.getMediaLibraryPermissions();
 
         try {
+            let result;
             if (type === 'video') {
-                let result = await ImagePicker.launchImageLibraryAsync({
+                result = await ImagePicker.launchImageLibraryAsync({
                     mediaTypes: ImagePicker.MediaTypeOptions.Videos,
                     allowsEditing: true,
                     quality: 1,
                 });
-
-                if (!result.canceled && result.assets.length > 0) {
-                    setImageUri(result.assets[0].uri);
-                } else {
-                    console.log('Image selection canceled');
-                }
             } else {
-                let result = await ImagePicker.launchImageLibraryAsync({
+                result = await ImagePicker.launchImageLibraryAsync({
                     mediaTypes: ImagePicker.MediaTypeOptions.Images,
                     allowsEditing: true,
                     quality: 1,
                 });
+            }
 
-                if (!result.canceled && result.assets.length > 0) {
-                    setImageUri(result.assets[0].uri);
+            if (!result.canceled && result.assets.length > 0) {
+                const uri = result.assets[0].uri;
+                if (uri) {
+                    setImageUri(uri);
                 } else {
-                    console.log('Image selection canceled');
+                    console.log('Image or video URI is null');
                 }
+            } else {
+                console.log('Image or video selection canceled');
             }
         } catch (error) {
-            console.error('Error picking image:', error);
+            console.error('Error picking image or video:', error);
         }
     };
 
@@ -72,19 +72,24 @@ const PostForm = () => {
         }
 
         const formData = new FormData();
-        formData.append('studentId', userId);
+        formData.append('studentId', userId || ''); // Ensure userId is not null
         formData.append('content', content);
         formData.append('type', type);
 
         if (imageUri) {
-            const uriParts = imageUri.split('.');
-            const fileType = uriParts[uriParts.length - 1];
-            formData.append('image', {
-                uri: imageUri,
-                name: `photo.${fileType}`,
-                type: `image/${fileType}`,
-            });
+            try {
+                const uriParts = imageUri.split('.');
+                const fileType = uriParts[uriParts.length - 1];
+                formData.append('image', {
+                    uri: imageUri,
+                    name: `photo.${fileType}`,
+                    type: `image/${fileType}`,
+                });
+            } catch (error) {
+                console.error('Error processing image URI:', error);
+            }
         }
+
         setLoading(true);
         try {
             const jwt = await AsyncStorage.getItem('token');

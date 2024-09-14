@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Image, StyleSheet, Text, StatusBar, TouchableOpacity, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import medicozinConfig from '../medicozin.config';
 
 const { width, height } = Dimensions.get('window');
 
 const HeaderScreen = () => {
     const navigation = useNavigation();
+    const [imageurl, setImageUrl] = useState('');
     const [user, setUser] = useState({
         userid: '',
         avatar: ''
@@ -24,7 +26,37 @@ const HeaderScreen = () => {
         };
         fetchUserData();
     }, [user]);
-
+    const fetchProfilePic = async () => {
+        try {
+          const jwt = await AsyncStorage.getItem('token');
+          if (!jwt) {
+            throw new Error('No token found');
+          }
+          const storedUser = await AsyncStorage.getItem('id');
+          const response = await fetch(`${medicozinConfig.API_HOST}/getProfilepicbyId/${storedUser}`, {
+            method: 'GET',
+            headers: {
+              Authorization: `Bearer ${jwt}`,
+            },
+          });
+    
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+    
+          const data = await response.json();
+          console.log("Raw article data:", data[0][0]);
+    
+          setImageUrl(`${medicozinConfig.API_HOST}${data[0][0]}`);
+        } catch (error) {
+          console.error('Error fetching profile picture:', error);
+        }
+      };
+      useEffect(() => {
+        
+        fetchProfilePic();
+      }, []);
+    
     return (
         <View style={styles.container}>
             <View style={styles.logoContainer}>
@@ -39,10 +71,10 @@ const HeaderScreen = () => {
                 </View>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => navigation.navigate('ChatScreen')}>
-                <Image style={styles.icon} source={require("../assets/telegram2.png")} />
+                <Image style={styles.icon} source={require("../assets/telegram3.png")} />
             </TouchableOpacity>
             <TouchableOpacity style={styles.avatarContainer} onPress={() => navigation.navigate('ProfileScreen')}>
-                <Image style={styles.avatar} source={user.avatar ? { uri: user.avatar } : require('../assets/avatar.png')} />
+                <Image style={styles.avatar} source={imageurl? { uri: imageurl} : require('../assets/avatar.png')} />
             </TouchableOpacity>
         </View>
     );

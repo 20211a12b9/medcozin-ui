@@ -39,7 +39,7 @@ const ArticleScreen = () => {
 
             // Transform data into the expected format
             const formattedData = data.map((item, index) => ({
-                imageUrl: item[2], // Assuming imageUrl is the third element
+                imageUrl: `${medicozinConfig.API_HOST}${item[2]}`,// Assuming imageUrl is the third element
                 postId: item[0], // Assuming postId is the first element
                 type: item[1], // Assuming type is the second element
                 content: item[4], // Assuming content is the fourth element

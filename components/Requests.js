@@ -1,15 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet, FlatList, Text, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import ProfileHeader from './ProfileHeader';
-import medicozinConfig from '../medicozin.config';
 import { useNavigation } from '@react-navigation/native';
+import medicozinConfig from '../medicozin.config';
 
-const FollowingScreen = () => {
+const Requests = () => {
   const [following, setFollowing] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [profilePics, setProfilePics] = useState({});
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -21,9 +19,7 @@ const FollowingScreen = () => {
           if (response.ok) {
             const data = await response.json();
             setFollowing(data);
-            // Fetch profile pics after getting following list
-            console.log("--...--",data)
-            
+            console.log("--...--", data);
           } else {
             throw new Error('Failed to fetch following');
           }
@@ -36,8 +32,6 @@ const FollowingScreen = () => {
         setLoading(false);
       }
     };
-
- 
 
     fetchFollowing();
   }, []);
@@ -55,6 +49,12 @@ const FollowingScreen = () => {
         <Text style={styles.name}>{item[3]} {item[4]}</Text>
         <Text style={styles.specialization}>{item[6]}</Text>
       </View>
+      <TouchableOpacity style={styles.iconContainer} onPress={() => navigation.navigate('NetworkScreen')}>
+        <Image style={styles.appIcon} source={require('../assets/check-mark.png')} />
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.iconContainer2} onPress={() => navigation.navigate('PostForm')}>
+        <Image style={styles.appIcon} source={require('../assets/delete.png')} />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 
@@ -68,7 +68,6 @@ const FollowingScreen = () => {
 
   return (
     <View style={styles.container}>
-      <ProfileHeader />
       <FlatList
         data={following}
         keyExtractor={(item) => item.folloersId ? item.folloersId.toString() : Math.random().toString()}
@@ -82,13 +81,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
+    marginTop: 40,
   },
   followerContainer: {
     flexDirection: 'row',
     padding: 10,
-    borderBottomWidth: 1,
+    borderBottomWidth: 2,
     borderBottomColor: '#ccc',
     alignItems: 'center',
+    paddingRight: 120,
   },
   avatar: {
     width: 50,
@@ -117,7 +118,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     color: 'red',
+    fontSize: 16,
+  },
+  iconContainer: {
+    marginLeft: 40,
+  },
+  iconContainer2 : {
+    marginLeft: 20,
+  },
+  appIcon: {
+    width: 24,
+    height: 24,
   },
 });
 
-export default FollowingScreen;
+export default Requests;
