@@ -1,85 +1,118 @@
-import React, { useState, useEffect } from 'react';
-import { GiftedChat } from 'react-native-gifted-chat';
-import io from 'socket.io-client';
-import { AsyncStorage } from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, Button, FlatList, StyleSheet } from 'react-native';
 
 const ChatScreen = () => {
   const [messages, setMessages] = useState([]);
-  const socket = io('http://your-backend-server/ws'); // Replace with your backend server URL
+  const [input, setInput] = useState('');
+  const ws = useRef(null);
 
   useEffect(() => {
-    // Fetch initial messages from the server if needed
-    fetchInitialMessages();
+    ws.current = new WebSocket('ws://192.168.1.7:9091/chat');
 
-    // Establish WebSocket connection
-    socket.on('connect', () => {
+    ws.current.onopen = () => {
       console.log('Connected to WebSocket server');
-    });
+    };
 
-    // Listen for incoming messages
-    socket.on('/topic/messages', (message) => {
-      const incomingMessage = {
-        _id: message.id,
-        text: message.content,
-        createdAt: new Date(message.timestamp),
-        user: {
-          _id: message.senderId,
-          name: message.senderName,
-        },
-      };
-      setMessages((previousMessages) => GiftedChat.append(previousMessages, incomingMessage));
-    });
+    ws.current.onmessage = (event) => {
+      console.log('Received message:', event.data);
+      const message = JSON.parse(event.data);
+      setMessages((prevMessages) => [...prevMessages, message]);
+    };
 
-    // Cleanup on unmount
+    ws.current.onclose = () => {
+      console.log('Disconnected from WebSocket server');
+    };
+
+    ws.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
     return () => {
-      socket.disconnect();
+      if (ws.current) {
+        ws.current.close();
+      }
     };
   }, []);
 
-  const fetchInitialMessages = async () => {
-    try {
-      const response = await fetch('http://192.168.1.8:8080/chat/messages', {
-        headers: {
-          Authorization: `Bearer ${await AsyncStorage.getItem('jwt')}`,
-        },
-      });
-      const data = await response.json();
-      const initialMessages = data.map((msg) => ({
-        _id: msg.id,
-        text: msg.content,
-        createdAt: new Date(msg.timestamp),
-        user: {
-          _id: msg.senderId,
-          name: msg.senderName,
-        },
-      }));
-      setMessages(initialMessages);
-    } catch (error) {
-      console.error('Error fetching initial messages:', error);
+  const sendMessage = () => {
+    if (input.trim()) {
+      const message = {
+        sender: 102,
+        receiver: 103,
+        content: input,
+        timestamp: new Date().toISOString(), // Ensure timestamp is set
+      };
+      console.log('Sending message:', message);
+      ws.current.send(JSON.stringify(message));
+      setInput('');
     }
   };
 
-  const onSend = async (newMessages = []) => {
-    const message = newMessages[0];
-    socket.emit('/app/chat', {
-      senderId: 52, // Replace with the actual sender ID
-      senderName: 'v1', // Replace with the actual sender name
-      content: message.text,
-      timestamp: new Date(),
-    });
-    setMessages((previousMessages) => GiftedChat.append(previousMessages, newMessages));
-  };
+  const renderMessage = ({ item }) => (
+    <View style={styles.messageContainer}>
+      <Text style={styles.messageText}>
+        <Text style={styles.sender}>{item.sender}:</Text> {item.content}
+      </Text>
+    </View>
+  );
+
+  const keyExtractor = (item) => item.timestamp ? item.timestamp.toString() : Math.random().toString();
 
   return (
-    <GiftedChat
-      messages={messages}
-      onSend={(messages) => onSend(messages)}
-      user={{
-        _id: 53, // Replace with the actual user ID
-        name: 's1', // Replace with the actual user name
-      }}
-    />
+    <View style={styles.container}>
+      <FlatList
+        data={messages}
+        renderItem={renderMessage}
+        keyExtractor={keyExtractor}
+        contentContainerStyle={styles.messagesContainer}
+      />
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          value={input}
+          onChangeText={setInput}
+          placeholder="Type a message"
+        />
+        <Button title="Send" onPress={sendMessage} />
+      </View>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 10,
+  },
+  messagesContainer: {
+    flexGrow: 1,
+    justifyContent: 'flex-end',
+  },
+  messageContainer: {
+    marginVertical: 5,
+    padding: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+  },
+  sender: {
+    fontWeight: 'bold',
+  },
+  messageText: {
+    fontSize: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingTop: 10,
+  },
+  input: {
+    flex: 1,
+    height: 40,
+    borderColor: 'gray',
+    borderWidth: 1,
+    marginRight: 10,
+    paddingHorizontal: 10,
+  },
+});
 
 export default ChatScreen;

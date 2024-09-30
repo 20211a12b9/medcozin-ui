@@ -15,7 +15,7 @@ const Requests = () => {
       try {
         const storedUser = await AsyncStorage.getItem('id');
         if (storedUser) {
-          const response = await fetch(`${medicozinConfig.API_HOST}/getFollowingg/${storedUser}`);
+          const response = await fetch(`${medicozinConfig.API_HOST}/getConnections/${storedUser}`);
           if (response.ok) {
             const data = await response.json();
             setFollowing(data);
@@ -41,6 +41,7 @@ const Requests = () => {
       style={styles.followerContainer}
       onPress={() => navigation.navigate('ProfileScreenOfFollowersOrFollowing', { followerId: item[0] })}
     >
+     
       <Image
         style={styles.avatar}
         source={{ uri: `${medicozinConfig.API_HOST}${item[7]}` }}

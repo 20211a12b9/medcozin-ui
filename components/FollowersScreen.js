@@ -20,7 +20,7 @@ const FollowersScreen = () => {
           const response = await fetch(`${medicozinConfig.API_HOST}/getFollowers/${storedUser}`);
           if (response.ok) {
             const data = await response.json();
-            console.log("fdata", data[0]);
+            console.log("fdata-----", data);
             setFollowers(data);
           } else {
             throw new Error('Failed to fetch followers');
@@ -42,15 +42,15 @@ const FollowersScreen = () => {
     
        <TouchableOpacity 
         style={styles.followerContainer}
-        onPress={() => navigation.navigate('ProfileScreenOfFollowersOrFollowing', {followerId: item.folloersId })}
+        onPress={() => navigation.navigate('ProfileScreenOfFollowersOrFollowing', {followerId: item[0] })}
       >
-      <Image
-        style={styles.avatar} 
-        source={user.avatar ? { uri: user.avatar } : require('../assets/avatar.png')} 
+     <Image
+        style={styles.avatar}
+        source={{ uri: `${medicozinConfig.API_HOST}${item[7]}` }}
       />
       <View style={styles.infoContainer}>
-        <Text style={styles.name}>{item.follower.firstname}{" "}{item.follower.lastname}</Text>
-        <Text style={styles.specialization}>{item.follower.specialization}</Text>
+        <Text style={styles.name}>{item[3]} {item[4]}</Text>
+        <Text style={styles.specialization}>{item[6]}</Text>
       </View>
       </TouchableOpacity>
    
